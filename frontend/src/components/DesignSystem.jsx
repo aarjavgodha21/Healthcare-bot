@@ -213,38 +213,58 @@ export const ChatBubble = ({
             </div>
           ) : (
             formattedSections && formattedSections.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-4">
                 {formattedSections.map((sec, idx) => (
-                  <div
-                    key={idx}
-                    className={`pl-4 border-l-2 ${
-                      (sec.title && (sec.title.includes('Red Flags') || sec.title.includes('खतरे'))) ? 'border-secondary-error'
-                      : (sec.title && (sec.title.includes('Disclaimer') || sec.title.includes('अस्वीकरण'))) ? 'border-neutral-light-gray'
-                      : 'border-primary/60'
-                    }`}
-                  >
-                    {sec.title && (
-                      <div className="text-[0.95rem] md:text-base font-semibold text-neutral-dark-gray mb-1 flex items-center">
-                        <span>{sec.title}</span>
+                  <div key={idx}>
+                    {/* Section Divider - only show after first section */}
+                    {idx > 0 && (
+                      <div className="flex items-center my-4">
+                        <div className="flex-grow h-px bg-gradient-to-r from-transparent via-neutral-light-gray to-transparent"></div>
+                        <div className="mx-3">
+                          <div className="w-2 h-2 rounded-full bg-primary/30"></div>
+                        </div>
+                        <div className="flex-grow h-px bg-gradient-to-r from-transparent via-neutral-light-gray to-transparent"></div>
                       </div>
                     )}
-                    <div className="space-y-[6px]">
-                      {sec.items?.map((it, j) => (
-                        it.type === 'bullet' ? (
-                          <div key={j} className="flex items-start text-sm leading-relaxed">
-                            <span className="mt-1 mr-2 inline-block w-1.5 h-1.5 rounded-full bg-primary"></span>
-                            <span>{it.text}</span>
-                          </div>
-                        ) : it.type === 'highlight' ? (
-                          <div key={j} className="text-sm leading-relaxed bg-primary/5 border border-primary/20 rounded-md px-3 py-2">
-                            {it.text}
-                          </div>
-                        ) : (
-                          <div key={j} className="text-sm leading-relaxed">
-                            {it.text}
-                          </div>
-                        )
-                      ))}
+                    
+                    <div
+                      className={`pl-4 border-l-2 ${
+                        (sec.title && (sec.title.includes('Red Flags') || sec.title.includes('खतरे'))) ? 'border-secondary-error'
+                        : (sec.title && (sec.title.includes('Disclaimer') || sec.title.includes('अस्वीकरण'))) ? 'border-neutral-light-gray'
+                        : 'border-primary/60'
+                      }`}
+                    >
+                      {sec.title && (
+                        <div className="text-[0.95rem] md:text-base font-semibold text-neutral-dark-gray mb-2 flex items-center">
+                          <span className="mr-2">
+                            {(sec.title.includes('Red Flags') || sec.title.includes('खतरे')) ? '🚨' 
+                             : (sec.title.includes('Recommendations') || sec.title.includes('सिफारिश')) ? '💡'
+                             : (sec.title.includes('Assessment') || sec.title.includes('आकलन')) ? '🔍'
+                             : (sec.title.includes('Follow') || sec.title.includes('फॉलो')) ? '📅'
+                             : (sec.title.includes('Disclaimer') || sec.title.includes('अस्वीकरण')) ? '📋'
+                             : '📊'}
+                          </span>
+                          <span>{sec.title}</span>
+                        </div>
+                      )}
+                      <div className="space-y-[6px]">
+                        {sec.items?.map((it, j) => (
+                          it.type === 'bullet' ? (
+                            <div key={j} className="flex items-start text-sm leading-relaxed">
+                              <span className="mt-1 mr-2 inline-block w-1.5 h-1.5 rounded-full bg-primary"></span>
+                              <span>{it.text}</span>
+                            </div>
+                          ) : it.type === 'highlight' ? (
+                            <div key={j} className="text-sm leading-relaxed bg-primary/5 border border-primary/20 rounded-md px-3 py-2">
+                              {it.text}
+                            </div>
+                          ) : (
+                            <div key={j} className="text-sm leading-relaxed">
+                              {it.text}
+                            </div>
+                          )
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ))}

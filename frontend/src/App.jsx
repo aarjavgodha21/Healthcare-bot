@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Home from './Home'
 import Chatbot from './Chatbot'
 import ImageUpload from './ImageUpload'
@@ -8,6 +8,12 @@ import './index.css'
 function App() {
   const [currentView, setCurrentView] = useState('home')
   const [language, setLanguage] = useState('en')
+
+  // Always show new views from the top
+  useEffect(() => {
+    // Reset the window scroll position on view change
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [currentView])
 
   const renderView = () => {
     switch (currentView) {
@@ -34,8 +40,22 @@ function App() {
           <div className="flex items-center justify-between pr-24">
             <div className="flex items-center space-x-m flex-1">
               <div className="bg-white/20 backdrop-blur-sm rounded-card p-s">
-                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19.5 3A2.5 2.5 0 0 1 22 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 18.5v-13A2.5 2.5 0 0 1 4.5 3h15zM8.5 6a1.5 1.5 0 0 0-1.5 1.5v9A1.5 1.5 0 0 0 8.5 18h7a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 15.5 6h-7zm3.5 2.5a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1zm0 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                {/* Healthcare icon: more detailed stethoscope (white stroke) */}
+                <svg className="w-8 h-8" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <g fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {/* Ear tips */}
+                    <circle cx="6" cy="4" r="1" />
+                    <circle cx="14" cy="4" r="1" />
+                    {/* Upper tubes */}
+                    <path d="M6 5v3a4 4 0 0 0 8 0V5" />
+                    {/* Flexible Y-tube to chest piece */}
+                    <path d="M10 12v2a4 4 0 0 0 8 0v-1" />
+                    {/* Chest piece ring and body */}
+                    <circle cx="19" cy="16" r="2.2" />
+                    <circle cx="19" cy="16" r="1" />
+                    {/* Short connector stem */}
+                    <path d="M18 14.5v-1" />
+                  </g>
                 </svg>
               </div>
               <div className="flex-1">
@@ -60,7 +80,7 @@ function App() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                 </svg>
                 <span className="font-medium">
-                  {language === 'en' ? 'Home' : 'होम'}
+                  {language === 'en' ? 'Home' : 'होم'}
                 </span>
               </button>
             )}

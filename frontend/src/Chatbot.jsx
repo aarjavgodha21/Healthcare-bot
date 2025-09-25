@@ -8,6 +8,7 @@ import {
   Container, 
   LoadingSpinner 
 } from './components/DesignSystem';
+import Orb from './components/Orb';
 
 export default function Chatbot({ onNavigate, language = 'en' }) {
   const [messages, setMessages] = useState([
@@ -20,11 +21,15 @@ export default function Chatbot({ onNavigate, language = 'en' }) {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [labUploading, setLabUploading] = useState(false);
+  const [labUploadSuccess, setLabUploadSuccess] = useState(false);
   const [error, setError] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const recognitionRef = useRef(null);
   const synthRef = useRef(null);
+  const chatContainerRef = useRef(null);
+  const labInputRef = useRef(null);
 
   // Content translations
   const content = {
@@ -115,6 +120,44 @@ export default function Chatbot({ onNavigate, language = 'en' }) {
     }
   };
 
+  // Upload lab (blood/urine) PDF and append parsed summary
+  const handleLabUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLabUploading(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+      const res = await fetch('http://127.0.0.1:8001/lab-report', {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+      const assistantMessage = { role: 'assistant', content: data.reply || 'Could not interpret the report.' };
+      setMessages((prev) => [...prev, { role: 'user', content: `Uploaded lab report: ${file.name}` }, assistantMessage]);
+      // Show transient success state on the button
+      setLabUploadSuccess(true);
+      setTimeout(() => setLabUploadSuccess(false), 2000);
+    } catch (err) {
+      const isAbort = (err && (err.name === 'AbortError' || (''+err).toLowerCase().includes('abort')));
+      if (isAbort) {
+        setError(language === 'en' ? 'Upload timed out. Please try again or use a smaller PDF.' : 'अपलोड समय सीमा समाप्त। कृपया पुनः प्रयास करें या छोटा PDF उपयोग करें।');
+      } else {
+        setError(language === 'en' ? 'Failed to analyze lab report PDF.' : 'लैब रिपोर्ट PDF का विश्लेषण विफल रहा।');
+      }
+      setLabUploadSuccess(false);
+    } finally {
+      setLabUploading(false);
+      if (labInputRef.current) labInputRef.current.value = '';
+    }
+  };
+
   // Initialize speech recognition and synthesis
   useEffect(() => {
     // Speech Recognition Setup
@@ -181,16 +224,29 @@ export default function Chatbot({ onNavigate, language = 'en' }) {
     // Known section headers in EN and HI
     const headers = [
       { match: /MEDICAL\s+CONSULTATION\s+REPORT/i, title: 'Medical Consultation Report' },
+      { match: /LAB\s+REPORT\s+SUMMARY/i, title: 'Lab Report Summary' },
+      { match: /EXTRACTED\s+VALUES/i, title: 'Extracted Values' },
+      { match: /NOTABLE\s+FINDINGS/i, title: 'Notable Findings' },
+      { match: /CLINICAL\s+CONSIDERATIONS/i, title: 'Clinical Considerations' },
       { match: /CHIEF\s+COMPLAINT/i, title: 'Chief Complaint' },
+      { match: /SYMPTOM\s+ANALYSIS/i, title: 'Symptom Analysis' },
+      { match: /DIFFERENTIAL\s+DIAGNOSIS/i, title: 'Differential Diagnosis' },
+      { match: /INVESTIGATIONS/i, title: 'Investigations' },
+      { match: /TREATMENT/i, title: 'Treatment' },
       { match: /GENERAL\s+ASSESSMENT/i, title: 'General Assessment' },
       { match: /GENERAL\s+RECOMMENDATIONS/i, title: 'General Recommendations' },
+      { match: /RECOMMENDATIONS/i, title: 'Recommendations' },
       { match: /RED\s+FLAGS/i, title: 'Red Flags - Seek Immediate Care If' },
       { match: /FOLLOW-?UP/i, title: 'Follow-Up' },
       { match: /MEDICAL\s+DISCLAIMER/i, title: 'Medical Disclaimer' },
       // Hindi equivalents
       { match: /मुख्य\s*शिकायत|मुख्य\s*चिंता/, title: 'मुख्य शिकायत' },
-      { match: /सामान्य\s*आकलन|लक्षण\s*विश्लेषण/, title: 'सामान्य आकलन' },
-      { match: /सामान्य\s*सिफारिशें|इलाज\s*की\s*सलाह/, title: 'सामान्य सिफारिशें' },
+      { match: /लक्षण\s*विश्लेषण/, title: 'लक्षण विश्लेषण' },
+      { match: /संभावित\s*रोग/, title: 'संभावित रोग' },
+      { match: /आवश्यक\s*जांच/, title: 'आवश्यक जांच' },
+      { match: /इलाज\s*की\s*सलाह/, title: 'इलाज की सलाह' },
+      { match: /सामान्य\s*आकलन/, title: 'सामान्य आकलन' },
+      { match: /सामान्य\s*सिफारिशें/, title: 'सामान्य सिफारिशें' },
       { match: /खतरे\s*के\s*संकेत/, title: 'खतरे के संकेत' },
       { match: /फॉलो-?अप|अनुवर्ती/, title: 'फॉलो-अप' },
       { match: /चिकित्सा\s*अस्वीकरण/, title: 'चिकित्सा अस्वीकरण' },
@@ -547,6 +603,13 @@ export default function Chatbot({ onNavigate, language = 'en' }) {
     }
   }, [language]);
 
+  // Always show the top of the conversation after updates (e.g., template click or view switch)
+  useEffect(() => {
+    if (chatContainerRef && chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = 0;
+    }
+  }, [messages]);
+
   return (
     <Container className="min-h-screen bg-gradient-to-br from-neutral-off-white via-primary-light to-primary-light/50">
       {/* Header Section */}
@@ -554,15 +617,14 @@ export default function Chatbot({ onNavigate, language = 'en' }) {
         <div className="max-w-6xl mx-auto px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button
-                variant="primary"
+              <button 
                 onClick={() => onNavigate('home')}
                 className="group w-12 h-12 bg-gradient-to-br from-secondary-success to-secondary-success/80 rounded-2xl flex items-center justify-center hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-primary/20"
               >
                 <svg className="w-6 h-6 text-white group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
-              </Button>
+              </button>
               <div>
                 <Heading2 className="text-2xl font-bold bg-gradient-to-r from-secondary-success to-secondary-success/80 bg-clip-text text-transparent">
                   {t.title}
@@ -590,46 +652,61 @@ export default function Chatbot({ onNavigate, language = 'en' }) {
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-primary/20 h-[600px] flex flex-col overflow-hidden">
           
           {/* Messages Container */}
-          <div className="flex-1 overflow-y-auto p-8 space-y-4" style={{fontFamily: language === 'hi' ? 'var(--font-hindi)' : 'var(--font-primary)'}}>
-            {messages.map((msg, i) => (
-              <ChatBubble
-                key={i}
-                role={msg.role}
-                content={msg.content}
-                formattedSections={msg.role === 'assistant' ? formatDiagnosisText(msg.content) : null}
-                language={language}
-                timestamp="Just now"
-                onSpeak={(ttsLang) => speakText(msg.content, ttsLang)}
-                isSpeaking={isSpeaking}
-                onStopSpeak={stopSpeaking}
-                showLanguageToggle={msg.role === 'assistant'}
-              />
-            ))}
+          <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-8 space-y-4 relative" style={{fontFamily: language === 'hi' ? 'var(--font-hindi)' : 'var(--font-primary)'}}>
             
-            {/* Loading Indicator */}
-            {loading && (
-              <div className="flex justify-start">
-                <div className="max-w-4xl flex flex-row items-start space-x-4">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg bg-gradient-to-br from-secondary-success to-secondary-success/80 mr-4">
-                    <svg className="w-6 h-6 text-white animate-pulse" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                    </svg>
-                  </div>
-                  <div className="relative px-6 py-4 rounded-2xl shadow-lg bg-white border border-neutral-light-gray">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-end space-x-1 h-4">
-                        <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'6px'}} />
-                        <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'12px', animationDelay:'0.15s'}} />
-                        <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'18px', animationDelay:'0.3s'}} />
-                        <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'12px', animationDelay:'0.45s'}} />
-                        <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'6px', animationDelay:'0.6s'}} />
+            {/* Orb Background Animation - Only in message area */}
+            <div className="absolute inset-0 w-full h-full opacity-40">
+              <Orb
+                hoverIntensity={0.5}
+                rotateOnHover={true}
+                hue={260} // Purple hue to match your medical theme
+                forceHoverState={false}
+              />
+            </div>
+
+            {/* Messages content with higher z-index */}
+            <div className="relative z-10 space-y-4">
+              {messages.map((msg, i) => (
+                <div key={i}>
+                  <ChatBubble
+                    role={msg.role}
+                    content={msg.content}
+                    formattedSections={msg.role === 'assistant' ? formatDiagnosisText(msg.content) : null}
+                    language={language}
+                    timestamp="Just now"
+                    onSpeak={(ttsLang) => speakText(msg.content, ttsLang)}
+                    isSpeaking={isSpeaking}
+                    onStopSpeak={stopSpeaking}
+                    showLanguageToggle={msg.role === 'assistant'}
+                  />
+                </div>
+              ))}
+              
+              {/* Loading Indicator */}
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="max-w-4xl flex flex-row items-start space-x-4">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg bg-gradient-to-br from-secondary-success to-secondary-success/80 mr-4">
+                      <svg className="w-6 h-6 text-white animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                      </svg>
+                    </div>
+                    <div className="relative px-6 py-4 rounded-2xl shadow-lg bg-white border border-neutral-light-gray">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-end space-x-1 h-4">
+                          <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'6px'}} />
+                          <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'12px', animationDelay:'0.15s'}} />
+                          <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'18px', animationDelay:'0.3s'}} />
+                          <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'12px', animationDelay:'0.45s'}} />
+                          <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'6px', animationDelay:'0.6s'}} />
+                        </div>
+                        <BodyText variant="small" className="text-neutral-medium-gray">{t.analyzingSymptoms}</BodyText>
                       </div>
-                      <BodyText variant="small" className="text-neutral-medium-gray">{t.analyzingSymptoms}</BodyText>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Error Display */}
@@ -652,7 +729,7 @@ export default function Chatbot({ onNavigate, language = 'en' }) {
           {/* Input Section */}
           <div className="p-8 border-t border-neutral-light-gray bg-neutral-off-white/50">
             <form onSubmit={sendMessage} className="space-y-4">
-              <div className="flex space-x-4">
+              <div className="flex space-x-4 items-center">
                 <div className="flex-1 relative">
                   <input
                     type="text"
@@ -675,7 +752,7 @@ export default function Chatbot({ onNavigate, language = 'en' }) {
                           ? 'bg-secondary-error text-white animate-pulse' 
                           : 'bg-primary-light text-primary hover:bg-primary/10'
                       }`}
-                      disabled={loading}
+                      disabled={loading || labUploading}
                       title={isListening ? t.stopRecording : t.voiceInput}
                     >
                       {isListening ? (
@@ -690,26 +767,67 @@ export default function Chatbot({ onNavigate, language = 'en' }) {
                     </button>
                   </div>
                 </div>
+                {/* Lab PDF upload near input and send */}
+                <div>
+                  <input ref={labInputRef} type="file" accept="application/pdf" onChange={handleLabUpload} className="hidden" />
+                  <button
+                    type="button"
+                    onClick={() => labInputRef.current?.click()}
+                    className={`flex items-center space-x-2 px-4 py-3 rounded-2xl border disabled:opacity-50 
+                      ${labUploadSuccess 
+                        ? 'bg-secondary-success/10 text-secondary-success border-secondary-success/30 hover:bg-secondary-success/15' 
+                        : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/15'}`}
+                    title={language === 'en' ? 'Upload blood/urine report (PDF)' : 'खून/मूत्र रिपोर्ट (PDF) अपलोड करें'}
+                    disabled={loading || labUploading}
+                  >
+                    {labUploading ? (
+                      <>
+                        <div className="flex items-end space-x-1 h-4">
+                          <span className="w-1 bg-primary animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'6px'}} />
+                          <span className="w-1 bg-primary animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'12px', animationDelay:'0.15s'}} />
+                          <span className="w-1 bg-primary animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'18px', animationDelay:'0.3s'}} />
+                          <span className="w-1 bg-primary animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'12px', animationDelay:'0.45s'}} />
+                          <span className="w-1 bg-primary animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'6px', animationDelay:'0.6s'}} />
+                        </div>
+                        <span className="text-sm font-medium">{language === 'en' ? 'Uploading…' : 'अपलोड हो रहा है…'}</span>
+                      </>
+                    ) : labUploadSuccess ? (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span className="text-sm font-medium">{language === 'en' ? 'Uploaded' : 'अपलोड हुआ'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <span className="text-sm font-medium">{language === 'en' ? 'Attach Lab PDF' : 'लैब PDF जोड़ें'}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
                 <Button
                   type="submit"
                   variant="primary"
-                  className="px-8 py-4 bg-gradient-to-r from-primary to-primary-dark text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+                  className="px-8 py-4 bg-gradient-to-r from-primary to-primary-dark text-black font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
                   disabled={loading || !input.trim()}
                 >
                   {loading ? (
                     <div className="flex items-center space-x-2">
                       <div className="flex items-end space-x-1 h-4">
-                        <span className="w-1 bg-white/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'6px'}} />
-                        <span className="w-1 bg-white/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'12px', animationDelay:'0.15s'}} />
-                        <span className="w-1 bg-white/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'18px', animationDelay:'0.3s'}} />
-                        <span className="w-1 bg-white/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'12px', animationDelay:'0.45s'}} />
-                        <span className="w-1 bg-white/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'6px', animationDelay:'0.6s'}} />
+                        <span className="w-1 bg-black/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'6px'}} />
+                        <span className="w-1 bg-black/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'12px', animationDelay:'0.15s'}} />
+                        <span className="w-1 bg-black/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'18px', animationDelay:'0.3s'}} />
+                        <span className="w-1 bg-black/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'12px', animationDelay:'0.45s'}} />
+                        <span className="w-1 bg-black/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'6px', animationDelay:'0.6s'}} />
                       </div>
-                      <span className="text-white/90">{t.analyzing}</span>
+                      <span className="text-black/90">{t.analyzing}</span>
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2">
-                      <span>{t.send}</span>
+                      <span className="text-black">{t.send}</span>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                       </svg>
