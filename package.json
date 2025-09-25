@@ -1,5 +1,12 @@
 {
-  "dependencies": {
-    "gasp": "^0.0.2"
+  "name": "diagnogenie-healthcare",
+  "private": true,
+  "version": "1.0.0",
+  "description": "AI-powered medical imaging and consultation platform",
+  "scripts": {
+    "start": "powershell ./start-all.ps1",
+    "start-frontend": "powershell ./start-frontend.ps1",
+    "start-backend": "powershell ./start-backend.ps1",
+    "start-ollama": "powershell ./start-ollama.ps1"
   }
 }

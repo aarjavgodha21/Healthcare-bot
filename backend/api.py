@@ -1409,29 +1409,53 @@ def chat_endpoint(req: ChatRequest) -> Dict[str, Any]:
 
 केवल हिंदी में जवाब दें। चिकित्सा शब्दों के लिए भी हिंदी का प्रयोग करें।"""
     else:
-        medical_prompt = f"""You are an experienced medical doctor. Provide a comprehensive consultation in clear English.
+        medical_prompt = f"""You are an experienced medical doctor providing educational consultation. Analyze the patient's symptoms and provide a detailed medical response.
 
 Patient Query: {user_msg}
 
-Please provide a detailed medical response including:
+Please provide a comprehensive medical response including:
 
-1. **SYMPTOM ANALYSIS**: Key symptoms identified
-2. **DIFFERENTIAL DIAGNOSIS**: 3-4 most likely conditions
-3. **INVESTIGATIONS**: Recommended tests and examinations  
-4. **TREATMENT**: Medications, home care, lifestyle changes
-5. **RED FLAGS**: Warning signs requiring immediate care
-6. **FOLLOW-UP**: When to return for reassessment
+## SYMPTOM ANALYSIS
+Identify and analyze the key symptoms mentioned by the patient.
 
-Format as a structured consultation. Be specific and professional."""
+## DIFFERENTIAL DIAGNOSIS
+List 3-4 most likely medical conditions based on the symptoms:
+1. [Primary diagnosis with reasoning]
+2. [Secondary diagnosis with reasoning]  
+3. [Alternative diagnosis with reasoning]
+4. [Other possibilities]
+
+## RECOMMENDED INVESTIGATIONS
+Suggest appropriate medical tests and examinations:
+- Laboratory tests (blood, urine, etc.)
+- Imaging studies if needed
+- Physical examinations
+
+## TREATMENT PLAN
+Provide specific treatment recommendations:
+- Medications with dosages
+- Home care instructions
+- Lifestyle modifications
+- Duration of treatment
+
+## RED FLAGS
+List warning signs that require immediate medical attention.
+
+## FOLLOW-UP
+Specify when to return for reassessment and monitoring.
+
+Format your response professionally with clear sections. Be specific about symptoms, conditions, and treatments. This is for educational purposes to help understand medical conditions better."""
 
     payload = {
         "model": ollama_model,
         "prompt": medical_prompt,
         "stream": False,
         "options": {
-            "temperature": 0.7,
-            "top_p": 0.9,
-            "top_k": 50
+            "temperature": 0.3,  # Lower temperature for more consistent medical responses
+            "top_p": 0.8,
+            "top_k": 40,
+            "repeat_penalty": 1.1,
+            "num_ctx": 4096  # Longer context for detailed medical responses
         }
     }
     try:
@@ -1601,55 +1625,155 @@ def generate_hindi_medical_response(user_msg: str) -> Dict[str, Any]:
     return {"reply": "\n".join(reply_lines)}
 
 def generate_english_medical_response(user_msg: str) -> Dict[str, Any]:
-    """Generate English medical response with structured format"""
-    # This is the existing English response logic - keeping it as is
+    """Generate comprehensive English medical response"""
     reply_lines = []
     user_msg_lower = user_msg.lower()
     
+    # Detect symptoms in English
     symptoms_detected = []
     conditions_suggested = []
     medications_suggested = []
     investigations_suggested = []
     
-    # [Previous English logic remains the same...]
-    # Respiratory symptoms
-    if any(word in user_msg_lower for word in ['cough', 'shortness of breath', 'chest pain', 'wheezing', 'sputum']):
-        symptoms_detected.append("Respiratory symptoms")
-        conditions_suggested.extend(["Upper respiratory tract infection", "Bronchitis", "Pneumonia", "Asthma exacerbation"])
-        medications_suggested.extend(["Salbutamol inhaler (100mcg, 2 puffs as needed)", "Paracetamol 500mg TDS for fever", "Dextromethorphan for dry cough"])
-        investigations_suggested.extend(["Chest X-ray", "Oxygen saturation monitoring", "Peak flow measurement"])
+    # Comprehensive English medical terms detection
+    # Fever and infection symptoms
+    if any(word in user_msg_lower for word in ['fever', 'high temperature', 'chills', 'hot', 'burning up', 'temperature']):
+        symptoms_detected.append("Fever and infection symptoms")
+        conditions_suggested.extend(["Viral fever", "Bacterial infection", "Influenza", "COVID-19"])
+        medications_suggested.extend(["Paracetamol 500mg every 6 hours", "Adequate fluid intake", "Rest"])
+        investigations_suggested.extend(["Complete blood count", "CRP test", "COVID-19 test"])
     
-    # [Additional symptom detection logic...]
-    # Build structured response similar to Hindi version
+    # Respiratory symptoms
+    if any(word in user_msg_lower for word in ['cough', 'shortness of breath', 'chest pain', 'wheezing', 'sputum', 'breathing difficulty', 'breathless']):
+        symptoms_detected.append("Respiratory symptoms")
+        conditions_suggested.extend(["Upper respiratory tract infection", "Bronchitis", "Pneumonia", "Asthma"])
+        medications_suggested.extend(["Salbutamol inhaler", "Cough suppressant", "Steam inhalation"])
+        investigations_suggested.extend(["Chest X-ray", "Oxygen saturation check", "Sputum examination"])
+        
+    # Neurological symptoms
+    if any(word in user_msg_lower for word in ['headache', 'migraine', 'dizziness', 'dizzy', 'head pain', 'vertigo']):
+        symptoms_detected.append("Neurological symptoms")
+        conditions_suggested.extend(["Tension headache", "Migraine", "Sinusitis", "Hypertension"])
+        medications_suggested.extend(["Paracetamol 500mg", "Rest in dark room", "Cold compress"])
+        investigations_suggested.extend(["Blood pressure check", "Eye examination", "CT scan if severe"])
+        
+    # Gastrointestinal symptoms
+    if any(word in user_msg_lower for word in ['stomach pain', 'abdominal pain', 'vomiting', 'nausea', 'diarrhea', 'stomach ache', 'belly pain']):
+        symptoms_detected.append("Gastrointestinal symptoms")
+        conditions_suggested.extend(["Gastroenteritis", "Food poisoning", "Peptic ulcer", "Acid reflux"])
+        medications_suggested.extend(["ORS solution", "Antacid", "Light diet"])
+        investigations_suggested.extend(["Stool examination", "Abdominal ultrasound", "H. pylori test"])
+        
+    # Musculoskeletal symptoms
+    if any(word in user_msg_lower for word in ['pain', 'joint pain', 'muscle pain', 'back pain', 'body ache', 'arthritis']):
+        symptoms_detected.append("Musculoskeletal symptoms")
+        conditions_suggested.extend(["Muscle strain", "Arthritis", "Back pain", "Fibromyalgia"])
+        medications_suggested.extend(["Ibuprofen 400mg", "Pain relief gel", "Hot compress"])
+        investigations_suggested.extend(["X-ray", "Blood inflammatory markers", "Physiotherapy"])
+
+    # Skin conditions
+    if any(word in user_msg_lower for word in ['rash', 'itching', 'skin', 'allergy', 'itch', 'red spots']):
+        symptoms_detected.append("Dermatological symptoms")
+        conditions_suggested.extend(["Allergic reaction", "Eczema", "Contact dermatitis", "Viral rash"])
+        medications_suggested.extend(["Antihistamine", "Calamine lotion", "Avoid allergens"])
+        investigations_suggested.extend(["Allergy testing", "Skin patch test", "Dermoscopy"])
+
+    # Mental health symptoms
+    if any(word in user_msg_lower for word in ['anxiety', 'depression', 'stress', 'worried', 'sad', 'panic', 'mental health']):
+        symptoms_detected.append("Mental health concerns")
+        conditions_suggested.extend(["Anxiety disorder", "Depression", "Stress reaction", "Panic disorder"])
+        medications_suggested.extend(["Counseling", "Relaxation techniques", "Regular exercise"])
+        investigations_suggested.extend(["Mental health assessment", "Psychological evaluation", "Stress management"])
+
+    # Sleep issues
+    if any(word in user_msg_lower for word in ['insomnia', 'sleep', 'tired', 'fatigue', 'exhausted', 'sleepless']):
+        symptoms_detected.append("Sleep and fatigue issues")
+        conditions_suggested.extend(["Sleep disorder", "Insomnia", "Sleep apnea", "Chronic fatigue"])
+        medications_suggested.extend(["Sleep hygiene", "Regular sleep schedule", "Avoid caffeine"])
+        investigations_suggested.extend(["Sleep study", "Thyroid function test", "Iron levels"])
+
+    # Build English response
     reply_lines.append("## 🏥 MEDICAL CONSULTATION REPORT")
     reply_lines.append("")
+    
+    # Patient presentation
     reply_lines.append("### 📋 CHIEF COMPLAINT")
     reply_lines.append(f"**Primary Concern:** {user_msg}")
     reply_lines.append("")
     
-    if not symptoms_detected:
-        reply_lines.append("### 🔍 GENERAL ASSESSMENT")
-        reply_lines.append("Based on your description, I'll provide general medical guidance.")
+    # Symptom analysis
+    if symptoms_detected:
+        reply_lines.append("### 🔍 SYMPTOM ANALYSIS")
+        for symptom in symptoms_detected:
+            reply_lines.append(f"• {symptom}")
         reply_lines.append("")
-        reply_lines.append("### 💊 GENERAL RECOMMENDATIONS")
-        reply_lines.append("• Adequate rest and hydration")
-        reply_lines.append("• Monitor symptoms closely")
-        reply_lines.append("• Maintain healthy lifestyle")
-        reply_lines.append("• Seek medical attention if symptoms persist")
+    else:
+        reply_lines.append("### 🔍 SYMPTOM ANALYSIS")
+        reply_lines.append("Based on your description, I'll provide comprehensive medical guidance.")
         reply_lines.append("")
     
+    # Differential diagnosis
+    if conditions_suggested:
+        reply_lines.append("### 🎯 DIFFERENTIAL DIAGNOSIS")
+        for i, condition in enumerate(set(conditions_suggested[:4]), 1):
+            reply_lines.append(f"{i}. {condition}")
+        reply_lines.append("")
+    else:
+        reply_lines.append("### 🎯 POSSIBLE CONDITIONS")
+        reply_lines.append("• Common viral infection")
+        reply_lines.append("• Stress-related disorder")
+        reply_lines.append("• Lifestyle-related issue")
+        reply_lines.append("• Nutritional deficiency")
+        reply_lines.append("")
+    
+    # Treatment recommendations
+    if medications_suggested:
+        reply_lines.append("### 💊 TREATMENT RECOMMENDATIONS")
+        reply_lines.append("**Medications:**")
+        for med in set(medications_suggested[:5]):
+            reply_lines.append(f"• {med}")
+        reply_lines.append("")
+    else:
+        reply_lines.append("### 💊 GENERAL TREATMENT ADVICE")
+        reply_lines.append("**Medications:**")
+        reply_lines.append("• Paracetamol 500mg (for fever and pain)")
+        reply_lines.append("• Adequate rest and fluids")
+        reply_lines.append("• Light, nutritious diet")
+        reply_lines.append("")
+        
+    reply_lines.append("**Home Care:**")
+    reply_lines.append("• Get adequate rest")
+    reply_lines.append("• Stay well hydrated")
+    reply_lines.append("• Maintain balanced diet")
+    reply_lines.append("• Manage stress levels")
+    reply_lines.append("")
+    
+    # Investigations
+    if investigations_suggested:
+        reply_lines.append("### 🧪 RECOMMENDED INVESTIGATIONS")
+        for test in set(investigations_suggested[:4]):
+            reply_lines.append(f"• {test}")
+        reply_lines.append("")
+    else:
+        reply_lines.append("### 🧪 BASIC INVESTIGATIONS")
+        reply_lines.append("• Complete blood count")
+        reply_lines.append("• Blood pressure and glucose check")
+        reply_lines.append("• Urine examination")
+        reply_lines.append("")
+    
+    # Red flags and follow-up
     reply_lines.append("### ⚠️ RED FLAGS - SEEK IMMEDIATE CARE IF:")
-    reply_lines.append("• Severe difficulty breathing or chest pain")
-    reply_lines.append("• High fever >39°C (102.2°F) with rigors")
+    reply_lines.append("• High fever >102°F (39°C)")
+    reply_lines.append("• Difficulty breathing or chest pain")
     reply_lines.append("• Severe abdominal pain or persistent vomiting")
-    reply_lines.append("• Signs of dehydration or altered consciousness")
-    reply_lines.append("• Any sudden, severe symptoms")
+    reply_lines.append("• Dizziness or fainting")
+    reply_lines.append("• Any sudden or severe symptoms")
     reply_lines.append("")
     
     reply_lines.append("### 📅 FOLLOW-UP")
-    reply_lines.append("• Review in 48-72 hours if no improvement")
-    reply_lines.append("• Earlier if symptoms worsen")
-    reply_lines.append("• Consider specialist referral if indicated")
+    reply_lines.append("• Return if no improvement in 2-3 days")
+    reply_lines.append("• Come back earlier if symptoms worsen")
+    reply_lines.append("• Consider specialist referral if needed")
     reply_lines.append("")
     
     reply_lines.append("### ⚖️ MEDICAL DISCLAIMER")

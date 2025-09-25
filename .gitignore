@@ -1,18 +1,66 @@
-# Python
-__pycache__/
-*.pyc
-.venv/
-.env
-*.pkl
-
-# Data downloads
-*.crdownload
-
-# Node/Frontend
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
 
-# OS
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+.env
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.crdownload
+
+# Medical data (keep private)
+*.nii
+*.nii.gz
+*.dcm
+*.dicom
+# Allow favicon files
+!public/favicon.*
+!**/public/favicon.*
+
+# Model files (too large for git)
+*.pkl
+*.pth
+*.model
+*.joblib
+
+# Test files
+**/test_*
+**/tests/
