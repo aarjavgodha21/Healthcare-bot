@@ -1,0 +1,35 @@
+{
+  "numeric_features": [
+    "age",
+    "WBC",
+    "Hb",
+    "Platelets",
+    "Glucose",
+    "Troponin",
+    "Creatinine",
+    "BUN",
+    "Cholesterol",
+    "SpO2",
+    "heart_rate",
+    "bp_sys",
+    "bp_dia",
+    "temperature_C",
+    "risk_score"
+  ],
+  "categorical_features": [
+    "sex",
+    "has_xray"
+  ],
+  "text_feature": "symptoms_text",
+  "target": "diagnosis_label",
+  "classes": [
+    "Anemia",
+    "CKD",
+    "COPD",
+    "Diabetes",
+    "Healthy",
+    "Myocardial_Infarction",
+    "Other_Infection",
+    "Pneumonia"
+  ]
+}

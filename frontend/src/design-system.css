@@ -1,0 +1,337 @@
+/* 
+ * Diagnogenie Design System - CSS Variables
+ * Import this file in your main CSS or component files
+ */
+
+:root {
+  /* Primary Colors */
+  --primary-blue: #2D7FF9;
+  --primary-dark: #1E3C72;
+  --primary-light: #E8F2FF;
+  
+  /* Secondary Colors */
+  --success-green: #4CAF50;
+  --warning-yellow: #FFC107;
+  --error-red: #F44336;
+  
+  /* Neutral Colors */
+  --dark-gray: #333333;
+  --medium-gray: #666666;
+  --light-gray: #CCCCCC;
+  --background-white: #FFFFFF;
+  --off-white: #F9FAFB;
+  
+  /* Alert Background Colors */
+  --alert-info-bg: #2D7FF9;
+  --alert-info-text: #FFFFFF;
+  --alert-warning-bg: #FFF3CD;
+  --alert-warning-text: #856404;
+  --alert-error-bg: #F8D7DA;
+  --alert-error-text: #721C24;
+  --alert-success-bg: #D4EDDA;
+  --alert-success-text: #155724;
+  
+  /* Typography */
+  --font-primary: 'Inter', Arial, Helvetica, sans-serif;
+  --font-hindi: 'Noto Sans Devanagari', Arial, Helvetica, sans-serif;
+  
+  /* Font Sizes */
+  --font-size-h1: 32px;
+  --font-size-h2: 24px;
+  --font-size-h3: 20px;
+  --font-size-body: 16px;
+  --font-size-body-small: 14px;
+  --font-size-caption: 12px;
+  
+  /* Line Heights */
+  --line-height-h1: 40px;
+  --line-height-h2: 32px;
+  --line-height-h3: 28px;
+  --line-height-body: 24px;
+  --line-height-body-small: 20px;
+  --line-height-caption: 18px;
+  
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Spacing Scale (8px baseline) */
+  --space-xs: 4px;
+  --space-s: 8px;
+  --space-m: 16px;
+  --space-l: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+  
+  /* Border Radius */
+  --radius-button: 8px;
+  --radius-card: 12px;
+  --radius-modal: 16px;
+  
+  /* Grid Breakpoints */
+  --breakpoint-mobile: 360px;
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1140px;
+  
+  /* Transitions */
+  --transition-fast: 200ms ease-in;
+  --transition-normal: 300ms ease-in-out;
+  --transition-slow: 500ms ease-in-out;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Base Typography Classes */
+.text-h1 {
+  font-size: var(--font-size-h1);
+  line-height: var(--line-height-h1);
+  font-weight: var(--font-weight-bold);
+  color: var(--dark-gray);
+}
+
+.text-h2 {
+  font-size: var(--font-size-h2);
+  line-height: var(--line-height-h2);
+  font-weight: var(--font-weight-semibold);
+  color: var(--dark-gray);
+}
+
+.text-h3 {
+  font-size: var(--font-size-h3);
+  line-height: var(--line-height-h3);
+  font-weight: var(--font-weight-medium);
+  color: var(--dark-gray);
+}
+
+.text-body {
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  font-weight: var(--font-weight-regular);
+  color: var(--dark-gray);
+}
+
+.text-body-small {
+  font-size: var(--font-size-body-small);
+  line-height: var(--line-height-body-small);
+  font-weight: var(--font-weight-regular);
+  color: var(--medium-gray);
+}
+
+.text-caption {
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  font-weight: var(--font-weight-medium);
+  color: var(--medium-gray);
+}
+
+/* Button Components */
+.btn-primary {
+  background-color: var(--primary-blue);
+  color: var(--background-white);
+  border: none;
+  border-radius: var(--radius-button);
+  padding: var(--space-m) var(--space-l);
+  font-family: var(--font-primary);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--primary-blue);
+  border: 2px solid var(--primary-blue);
+  border-radius: var(--radius-button);
+  padding: var(--space-m) var(--space-l);
+  font-family: var(--font-primary);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-secondary:hover {
+  background-color: var(--primary-light);
+}
+
+.btn-disabled {
+  background-color: var(--light-gray);
+  color: var(--medium-gray);
+  border: none;
+  border-radius: var(--radius-button);
+  padding: var(--space-m) var(--space-l);
+  font-family: var(--font-primary);
+  font-weight: var(--font-weight-medium);
+  cursor: not-allowed;
+}
+
+/* Chat Bubbles */
+.chat-user {
+  background-color: var(--primary-blue);
+  color: var(--background-white);
+  border-radius: var(--radius-card);
+  padding: var(--space-m);
+  margin: var(--space-s) 0;
+  animation: fadeIn var(--transition-fast);
+}
+
+.chat-bot {
+  background-color: var(--off-white);
+  color: var(--dark-gray);
+  border-radius: var(--radius-card);
+  padding: var(--space-m);
+  margin: var(--space-s) 0;
+  animation: fadeIn var(--transition-fast);
+}
+
+/* Alert Components */
+.alert {
+  border-radius: var(--radius-button);
+  padding: var(--space-m);
+  margin: var(--space-s) 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.alert-info {
+  background-color: var(--alert-info-bg);
+  color: var(--alert-info-text);
+}
+
+.alert-warning {
+  background-color: var(--alert-warning-bg);
+  color: var(--alert-warning-text);
+}
+
+.alert-error {
+  background-color: var(--alert-error-bg);
+  color: var(--alert-error-text);
+}
+
+.alert-success {
+  background-color: var(--alert-success-bg);
+  color: var(--alert-success-text);
+}
+
+/* Image Upload Component */
+.image-upload {
+  border: 2px dashed var(--light-gray);
+  border-radius: var(--radius-card);
+  padding: var(--space-xl);
+  text-align: center;
+  transition: var(--transition-fast);
+  cursor: pointer;
+}
+
+.image-upload:hover {
+  border-color: var(--primary-blue);
+}
+
+.image-upload.success {
+  border-color: var(--success-green);
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.image-upload.error {
+  border-color: var(--error-red);
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+/* Language Toggle */
+.language-toggle {
+  position: fixed;
+  top: var(--space-m);
+  right: var(--space-m);
+  background: var(--background-white);
+  border: 1px solid var(--light-gray);
+  border-radius: var(--radius-button);
+  padding: var(--space-s) var(--space-m);
+  box-shadow: var(--shadow-sm);
+  z-index: 1000;
+}
+
+/* Responsive Grid */
+.container {
+  max-width: var(--breakpoint-desktop);
+  margin: 0 auto;
+  padding: 0 var(--space-m);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal {
+  animation: slideInFromBottom var(--transition-normal);
+}
+
+/* Utility Classes */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.mb-xs { margin-bottom: var(--space-xs); }
+.mb-s { margin-bottom: var(--space-s); }
+.mb-m { margin-bottom: var(--space-m); }
+.mb-l { margin-bottom: var(--space-l); }
+.mb-xl { margin-bottom: var(--space-xl); }
+.mb-xxl { margin-bottom: var(--space-xxl); }
+
+.mt-xs { margin-top: var(--space-xs); }
+.mt-s { margin-top: var(--space-s); }
+.mt-m { margin-top: var(--space-m); }
+.mt-l { margin-top: var(--space-l); }
+.mt-xl { margin-top: var(--space-xl); }
+.mt-xxl { margin-top: var(--space-xxl); }
+
+.p-xs { padding: var(--space-xs); }
+.p-s { padding: var(--space-s); }
+.p-m { padding: var(--space-m); }
+.p-l { padding: var(--space-l); }
+.p-xl { padding: var(--space-xl); }
+.p-xxl { padding: var(--space-xxl); }
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  :root {
+    --primary-blue: #0066CC;
+    --primary-dark: #003D7A;
+    --dark-gray: #000000;
+    --light-gray: #999999;
+  }
+}
