@@ -166,66 +166,100 @@ export default function Chatbot({ onNavigate, language = 'en' }) {
     return hindiRegex.test(text);
   };
 
-  // Format medical diagnosis text for beautiful display
+  // Format medical (EN + HI) diagnosis text for compact chat display
   const formatDiagnosisText = (text) => {
     if (!text) return text;
-    
-    // Split into lines and process each section
-    const lines = text.split('\n').filter(line => line.trim());
+
+    // Remove markdown emphasis and emojis for cleaner display
+    const stripMd = (s) => s
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+      .replace(/#{1,6}\s*/g, '')
+      .trim();
+
+    // Known section headers in EN and HI
+    const headers = [
+      { match: /MEDICAL\s+CONSULTATION\s+REPORT/i, title: 'Medical Consultation Report' },
+      { match: /CHIEF\s+COMPLAINT/i, title: 'Chief Complaint' },
+      { match: /GENERAL\s+ASSESSMENT/i, title: 'General Assessment' },
+      { match: /GENERAL\s+RECOMMENDATIONS/i, title: 'General Recommendations' },
+      { match: /RED\s+FLAGS/i, title: 'Red Flags - Seek Immediate Care If' },
+      { match: /FOLLOW-?UP/i, title: 'Follow-Up' },
+      { match: /MEDICAL\s+DISCLAIMER/i, title: 'Medical Disclaimer' },
+      // Hindi equivalents
+      { match: /मुख्य\s*शिकायत|मुख्य\s*चिंता/, title: 'मुख्य शिकायत' },
+      { match: /सामान्य\s*आकलन|लक्षण\s*विश्लेषण/, title: 'सामान्य आकलन' },
+      { match: /सामान्य\s*सिफारिशें|इलाज\s*की\s*सलाह/, title: 'सामान्य सिफारिशें' },
+      { match: /खतरे\s*के\s*संकेत/, title: 'खतरे के संकेत' },
+      { match: /फॉलो-?अप|अनुवर्ती/, title: 'फॉलो-अप' },
+      { match: /चिकित्सा\s*अस्वीकरण/, title: 'चिकित्सा अस्वीकरण' },
+    ];
+
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
     const sections = [];
-    let currentSection = null;
-    
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) continue;
-      
-      // Detect main headers
-      if (trimmed.includes('MEDICAL CONSULTATION REPORT')) {
-        sections.push({ type: 'main-header', text: '🏥 Medical Consultation Report' });
+    let current = null;
+
+    const startSection = (title) => {
+      if (current) sections.push(current);
+      current = { type: 'section', title, items: [] };
+    };
+
+    for (let raw of lines) {
+      const line = stripMd(raw);
+      if (!line) continue;
+
+      // Header detection (EN + HI)
+      const header = headers.find(h => h.match.test(line));
+      if (header) { startSection(header.title); continue; }
+
+      // Primary concern (EN + HI labels)
+      const pcMatch = line.match(/^(Primary\s*Concern|मुख्य\s*चिंता|प्राथमिक\s*लक्षण)\s*:?\s*(.+)$/i);
+      if (pcMatch && current) {
+        current.items.push({ type: 'highlight', text: pcMatch[2].trim() });
+        continue;
       }
-      else if (trimmed.includes('CHIEF COMPLAINT')) {
-        if (currentSection) sections.push(currentSection);
-        currentSection = { type: 'section', title: '📋 Chief Complaint', items: [] };
+
+      // Bullets (•, -, numbers)
+      if (/^[•\-]\s+/.test(raw) || /^\d+\./.test(raw)) {
+        if (!current) startSection('');
+        current.items.push({ type: 'bullet', text: stripMd(raw).replace(/^([•\-]|\d+\.)\s*/, '') });
+        continue;
       }
-      else if (trimmed.includes('GENERAL ASSESSMENT')) {
-        if (currentSection) sections.push(currentSection);
-        currentSection = { type: 'section', title: '🔍 General Assessment', items: [] };
-      }
-      else if (trimmed.includes('GENERAL RECOMMENDATIONS')) {
-        if (currentSection) sections.push(currentSection);
-        currentSection = { type: 'section', title: '💊 General Recommendations', items: [] };
-      }
-      else if (trimmed.includes('RED FLAGS')) {
-        if (currentSection) sections.push(currentSection);
-        currentSection = { type: 'section', title: '⚠️ Red Flags - Seek Immediate Care If:', items: [] };
-      }
-      else if (trimmed.includes('FOLLOW-UP')) {
-        if (currentSection) sections.push(currentSection);
-        currentSection = { type: 'section', title: '📅 Follow-Up', items: [] };
-      }
-      else if (trimmed.includes('MEDICAL DISCLAIMER')) {
-        if (currentSection) sections.push(currentSection);
-        currentSection = { type: 'section', title: '⚕️ Medical Disclaimer', items: [] };
-      }
-      // Process content lines
-      else if (trimmed.startsWith('Primary Concern:')) {
-        if (currentSection) {
-          currentSection.items.push({ type: 'highlight', text: trimmed.replace('Primary Concern:', '').trim() });
-        }
-      }
-      else if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
-        if (currentSection) {
-          currentSection.items.push({ type: 'bullet', text: trimmed.replace(/^[•\-]\s*/, '') });
-        }
-      }
-      else if (trimmed.length > 0) {
-        if (currentSection) {
-          currentSection.items.push({ type: 'text', text: trimmed });
-        }
-      }
+
+      // Regular text
+      if (!current) startSection('');
+      current.items.push({ type: 'text', text: line });
     }
+
+    if (current) sections.push(current);
     
-    if (currentSection) sections.push(currentSection);
+    // Minimal fallback if nothing parsed well
+    if (sections.length === 0 || (sections.length === 1 && (sections[0].items?.length || 0) === 0)) {
+      const fallbackLines = lines.slice(0, 4).map(l => ({ type: 'text', text: stripMd(l) }));
+      sections.push({ type: 'section', title: '', items: fallbackLines });
+    }
+
+    // Refusal vs generic disclaimer handling (conservative)
+    const refusalRegexEN = /(cannot provide\s+(a\s+)?medical\s+(consultation|advice)|can't provide.*medical|cannot diagnose|i am not able to (provide|give) medical)/i;
+    const refusalRegexHI = /(चिकित्सा\s*परामर्श\s*प्रदान\s*नहीं\s*कर\s*सकता|निदान\s*नहीं\s*कर\s*सकता|चिकित्सा\s*सलाह\s*नहीं\s*दे\s*सकता)/;
+    const hasRefusal = refusalRegexEN.test(text) || refusalRegexHI.test(text);
+
+    // Only show an Urgent Safety section if it's a refusal and content is sparse
+    if (hasRefusal && (sections.length === 0 || (sections.length === 1 && (sections[0].items?.length || 0) <= 1))) {
+      const firstSentences = stripMd(text)
+        .split(/[.!?।]/)
+        .map(s => s.trim())
+        .filter(Boolean)
+        .slice(0, 3)
+        .map(s => ({ type: 'text', text: s }));
+      sections.unshift({
+        type: 'section',
+        title: language === 'hi' ? '⚠️ आपातकालीन सलाह' : '⚠️ Urgent Safety Notice',
+        items: firstSentences
+      });
+    }
+
     return sections;
   };
 
@@ -562,13 +596,13 @@ export default function Chatbot({ onNavigate, language = 'en' }) {
                 key={i}
                 role={msg.role}
                 content={msg.content}
-                formattedSections={msg.role === "assistant" ? formatDiagnosisText(msg.content) : null}
+                formattedSections={msg.role === 'assistant' ? formatDiagnosisText(msg.content) : null}
                 language={language}
                 timestamp="Just now"
                 onSpeak={(ttsLang) => speakText(msg.content, ttsLang)}
                 isSpeaking={isSpeaking}
                 onStopSpeak={stopSpeaking}
-                showLanguageToggle={msg.role === "assistant"}
+                showLanguageToggle={msg.role === 'assistant'}
               />
             ))}
             
@@ -583,10 +617,12 @@ export default function Chatbot({ onNavigate, language = 'en' }) {
                   </div>
                   <div className="relative px-6 py-4 rounded-2xl shadow-lg bg-white border border-neutral-light-gray">
                     <div className="flex items-center space-x-3">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-secondary-success rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-secondary-success rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                        <div className="w-2 h-2 bg-secondary-success rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      <div className="flex items-end space-x-1 h-4">
+                        <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'6px'}} />
+                        <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'12px', animationDelay:'0.15s'}} />
+                        <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'18px', animationDelay:'0.3s'}} />
+                        <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'12px', animationDelay:'0.45s'}} />
+                        <span className="w-1 bg-secondary-success/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'6px', animationDelay:'0.6s'}} />
                       </div>
                       <BodyText variant="small" className="text-neutral-medium-gray">{t.analyzingSymptoms}</BodyText>
                     </div>
@@ -662,8 +698,14 @@ export default function Chatbot({ onNavigate, language = 'en' }) {
                 >
                   {loading ? (
                     <div className="flex items-center space-x-2">
-                      <LoadingSpinner size="xs" color="white" />
-                      <span>{t.analyzing}</span>
+                      <div className="flex items-end space-x-1 h-4">
+                        <span className="w-1 bg-white/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'6px'}} />
+                        <span className="w-1 bg-white/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'12px', animationDelay:'0.15s'}} />
+                        <span className="w-1 bg-white/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'18px', animationDelay:'0.3s'}} />
+                        <span className="w-1 bg-white/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'12px', animationDelay:'0.45s'}} />
+                        <span className="w-1 bg-white/80 animate-[pulse_1s_ease-in-out_infinite] rounded" style={{height:'6px', animationDelay:'0.6s'}} />
+                      </div>
+                      <span className="text-white/90">{t.analyzing}</span>
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2">

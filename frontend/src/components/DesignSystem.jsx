@@ -204,29 +204,61 @@ export const ChatBubble = ({
         <div className={`relative rounded-2xl shadow-lg max-w-3xl ${
           isUser
             ? 'bg-gradient-to-br from-primary to-primary-dark text-white px-6 py-4'
-            : 'bg-transparent'
+            : 'bg-white border border-neutral-light-gray text-neutral-dark-gray px-5 py-4'
         } ${language === 'hi' ? 'font-hindi' : 'font-primary'}`}>
-          
+
           {isUser ? (
             <div className="whitespace-pre-wrap text-sm leading-relaxed">
               {content}
             </div>
           ) : (
-            // For assistant messages, use formatted medical report if available
             formattedSections && formattedSections.length > 0 ? (
-              <MedicalReport sections={formattedSections} />
+              <div className="space-y-2">
+                {formattedSections.map((sec, idx) => (
+                  <div
+                    key={idx}
+                    className={`pl-4 border-l-2 ${
+                      (sec.title && (sec.title.includes('Red Flags') || sec.title.includes('खतरे'))) ? 'border-secondary-error'
+                      : (sec.title && (sec.title.includes('Disclaimer') || sec.title.includes('अस्वीकरण'))) ? 'border-neutral-light-gray'
+                      : 'border-primary/60'
+                    }`}
+                  >
+                    {sec.title && (
+                      <div className="text-[0.95rem] md:text-base font-semibold text-neutral-dark-gray mb-1 flex items-center">
+                        <span>{sec.title}</span>
+                      </div>
+                    )}
+                    <div className="space-y-[6px]">
+                      {sec.items?.map((it, j) => (
+                        it.type === 'bullet' ? (
+                          <div key={j} className="flex items-start text-sm leading-relaxed">
+                            <span className="mt-1 mr-2 inline-block w-1.5 h-1.5 rounded-full bg-primary"></span>
+                            <span>{it.text}</span>
+                          </div>
+                        ) : it.type === 'highlight' ? (
+                          <div key={j} className="text-sm leading-relaxed bg-primary/5 border border-primary/20 rounded-md px-3 py-2">
+                            {it.text}
+                          </div>
+                        ) : (
+                          <div key={j} className="text-sm leading-relaxed">
+                            {it.text}
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : (
-              <div className="bg-white border border-neutral-light-gray rounded-2xl px-6 py-4">
-                <div className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-dark-gray">
-                  {content}
-                </div>
+              <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                {content}
               </div>
             )
           )}
           
           {/* Assistant Controls */}
           {!isUser && showLanguageToggle && (
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-neutral-light-gray bg-white rounded-b-2xl px-6 py-3">
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-neutral-light-gray">
               <div className="flex items-center space-x-2 text-xs text-neutral-medium-gray">
                 <div className="w-1.5 h-1.5 bg-secondary-success rounded-full"></div>
                 <span>AI Medical Assistant</span>
