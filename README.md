@@ -1,229 +1,139 @@
-# 🏥 DiagnoGenie - AI-Powered Medical Platform## DiagnoGenie - DiagnoGenie Award-Winning Healthcare AI
-
-
+# 🏥 DiagnoGenie - AI-Powered Medical Platform
 
 A comprehensive healthcare AI platform that provides medical imaging analysis, symptom consultation, and lab report interpretation using advanced machine learning models.
 
-An advanced healthcare AI system with:
+## 📹 **Submissions**
 
-## ✨ Features- Modern home screen (Chatbot & Image Upload)
+### **Demonstration Video**
+🎥 **Complete System Demo**: [Watch DiagnoGenie in Action](https://drive.google.com/file/d/1Hj_ZwEGGdzQHYF2DPedsKZG1B30ituy3/view?usp=drive_link)
 
-- Chatbot for medical Q&A (safe, rule-based, or LLM if configured)
+*Comprehensive demonstration showcasing all medical AI features including chatbot consultation, X-ray analysis, MRI diagnosis, and lab report processing.*
 
-### 🔬 Medical Imaging Analysis- Image upload for X-ray/MRI with diagnosis, confidence, suggestions, and 4+ visual outputs (Grad-CAM, overlays, etc.)
+### **Project Presentation**
+📊 **Technical Presentation**: [DiagnoGenie Project Overview](https://drive.google.com/file/d/1_o05zHEaKLaisMADlgLAZQbR227rdDUK/view?usp=sharing)
 
-- **X-ray Analysis**: Pneumonia, COVID-19, fractures, and 14+ pathology detection using CheXNet- Beautiful, aesthetic UI with Tailwind and gradients
+*Detailed presentation covering architecture, technology stack, AI models, and implementation approach.*
 
-- **MRI Brain Imaging**: Brain tumor, stroke, multiple sclerosis detection
+## ✨ Features
 
+### 🔬 Medical Imaging Analysis
+- **X-ray Analysis**: Pneumonia, COVID-19, fractures, and 14+ pathology detection using CheXNet
+- **MRI Brain Imaging**: Brain tumor, stroke, multiple sclerosis detection  
 - **Advanced Visualizations**: AI attention maps, anatomical edge detection, pathology heatmaps
 
-### Features
-
-### 💬 AI Medical Consultation- **Home Screen**: Choose Chatbot or Image Upload
-
-- **Multilingual Support**: English and Hindi medical consultations- **Chatbot**: Medical Q&A, suggestions, safety disclaimers
-
-- **Symptom Analysis**: Comprehensive differential diagnosis and treatment recommendations- **Image Upload**: Upload X-ray or MRI, get diagnosis, confidence, suggestions, and 4+ visual diagrams (Grad-CAM, overlays, saliency, etc.)
-
-- **Voice Integration**: Text-to-speech for accessibility- **Tabular Diagnosis**: Predict from demographics, labs, symptoms
-
-- **Structured Reports**: Professional medical consultation format- **Modern UI**: Award-winning look, gradients, responsive, Tailwind
-
-- **Robust Backend**: FastAPI, PyTorch, torchxrayvision, Grad-CAM
+### 💬 AI Medical Consultation
+- **Multilingual Support**: English and Hindi medical consultations
+- **Symptom Analysis**: Comprehensive differential diagnosis and treatment recommendations
+- **Voice Integration**: Text-to-speech for accessibility
+- **Structured Reports**: Professional medical consultation format
 
 ### 📋 Lab Report Processing
-
 - **PDF Analysis**: Blood reports, urine tests, infectious disease markers
-
-- **Smart Extraction**: Automated value parsing and clinical interpretation### Quick Start (Windows/PowerShell)
-
+- **Smart Extraction**: Automated value parsing and clinical interpretation
 - **Risk Assessment**: Flagging abnormal values with clinical context
 
-#### 1. Setup Python Environment
-
-### 🎨 Modern Interface```bash
-
-- **WebGL Animations**: Interactive orb background in chatbotpython -m venv .venv
-
-- **Responsive Design**: Works on desktop, tablet, and mobile.venv\Scripts\activate
-
-- **Medical UI/UX**: Professional healthcare-focused design systemcd backend
-
-- **Accessibility**: Screen reader compatible, keyboard navigationpip install -r requirements.txt
-
-```
+### 🎨 Modern Interface
+- **WebGL Animations**: Interactive orb background in chatbot
+- **Responsive Design**: Works on desktop, tablet, and mobile
+- **Medical UI/UX**: Professional healthcare-focused design system
+- **Accessibility**: Screen reader compatible, keyboard navigation
 
 ## 🚀 Quick Start
 
-#### 2. Train the Model (if not already trained)
+### Prerequisites
+- **Python 3.8+** with pip
+- **Node.js 16+** with npm
+- **Ollama** (optional, for enhanced AI chat)
 
-### Prerequisites```bash
+### Installation & Setup
 
-- **Python 3.8+** with pipcd backend
+📖 **For detailed setup instructions and troubleshooting, see [SETUP_GUIDE.md](SETUP_GUIDE.md)**
 
-- **Node.js 16+** with npmpython train_model.py
-
-- **Ollama** (optional, for enhanced AI chat)```
-
-
-
-### Installation & Setup#### 3. Start Ollama (optional, for better chatbot)
-
-```bash
-
-#### 1. Python Backend Setupollama serve
-
-```powershell```
-
+#### 1. Python Backend Setup
+```powershell
 # Create virtual environment
+python -m venv .venv
+.venv\Scripts\activate
 
-python -m venv .venv#### 4. Start the API Server
-
-.venv\Scripts\activate```bash
-
+# Install backend dependencies
 cd backend
-
-# Install backend dependenciesuvicorn api:app --reload --port 8001
-
-cd backend```
-
 pip install -r requirements.txt
 
-API endpoints:
+# Train the model (if not already trained)
+python train_model.py
+```
 
-# Train the model (if not already trained)- **Health**: GET http://localhost:8001/health
+#### 2. Frontend Setup
+```powershell
+cd frontend
+npm install
+```
 
-python train_model.py- **Schema**: GET http://localhost:8001/schema
+#### 3. Start Services (Individual Scripts)
 
-```- **Predict**: POST http://localhost:8001/predict
-
-- **Image Diagnosis**: POST http://localhost:8001/image-diagnosis (file upload)
-
-#### 2. Frontend Setup- **Chatbot**: POST http://localhost:8001/chat
+**🚀 Use the convenient PowerShell scripts for easy startup:**
 
 ```powershell
+# Start backend API server
+.\start-backend.ps1     # Runs on http://localhost:8001
 
-cd frontend
+# Start frontend development server  
+.\start-frontend.ps1    # Runs on http://localhost:5173
 
-npm install#### 5. Start the Frontend
+# Start Ollama (optional for enhanced AI chat)
+.\start-ollama.ps1      # Ollama service for LLM integration
+```
 
-``````bash
+**Alternative - Manual startup:**
+```powershell
+# Frontend
+cd frontend ; npm run dev
 
-cd frontend
+# Backend (in separate terminal)
+cd backend ; .venv\Scripts\activate ; uvicorn api:app --reload --port 8001
 
-#### 3. Start Servicesnpm install
+# Ollama (in separate terminal, optional)
+ollama serve
+```
 
-```powershellnpm run dev
+#### 4. Access the Application
+Open http://localhost:5173 in your browser to access DiagnoGenie.
 
-# Option 1: Start all services at once```
+## 🛠️ Technology Stack
 
-npm run startOpen http://localhost:5173 in your browser.
+### Data Ingestion & Processing
+- **Python 3.8+**: Core backend language
+- **FastAPI**: High-performance web API framework
+- **OpenCV**: Computer vision and image processing
+- **PyPDF2**: PDF lab report extraction
+- **Pillow**: Image manipulation and format conversion
 
+### AI Models & Machine Learning
+- **PyTorch**: Deep learning framework for medical imaging
+- **torchxrayvision**: CheXNet model for X-ray analysis (14+ pathologies)
+- **scikit-learn**: RandomForest classifier for symptom diagnosis
+- **TensorFlow**: MRI analysis and custom medical models
+- **Grad-CAM**: AI explainability and attention visualization
 
+### Backend API & Services
+- **FastAPI + Uvicorn**: RESTful API with async capabilities
+- **Pydantic**: Data validation and serialization
+- **CORS**: Cross-origin resource sharing for web integration
+- **File Upload**: Multi-format medical image support
+- **Ollama Integration**: Optional LLM for enhanced medical consultations
 
-# Option 2: Start services individually
+### Frontend UI & Experience
+- **React 18**: Modern component-based UI framework
+- **Vite**: Fast development and optimized builds
+- **Tailwind CSS**: Utility-first styling with medical design system
+- **OGL (WebGL)**: 3D medical visualizations and animations
+- **Responsive Design**: Mobile-first medical interface
 
-npm run start-frontend  # Runs on http://localhost:5173### API Usage
+## 📖 API Documentation
 
-npm run start-backend   # Runs on http://localhost:8000
-
-npm run start-ollama    # Optional: Enhanced AI chat
-
-```#### Image Diagnosis (X-ray/MRI)
-
-curl -X POST http://localhost:8001/image-diagnosis \
-
-#### 4. Access the Application  -F "file=@Tests/covid.jpeg" \
-
-Open http://localhost:5173 in your browser to access DiagnoGenie.  -F "image_type=auto"
-
-
-
-## 🛠️ Architecture#### Chatbot
-
-curl -X POST http://localhost:8001/chat \
-
-```  -H "Content-Type: application/json" \
-
-Healthcare/  -d '{"messages": [{"role": "user", "content": "What does my X-ray show?"}]}'
-
-├── frontend/           # React + Vite + Tailwind CSS
-
-│   ├── src/### Model Details
-
-│   │   ├── App.jsx            # Main application- **Algorithm**: RandomForestClassifier (200 trees, max_depth=20)
-
-│   │   ├── Chatbot.jsx        # AI medical consultation- **Features**: 15 numeric, 2 categorical, 1 text (TF-IDF with 500 features)
-
-│   │   ├── ImageUpload.jsx    # Medical imaging analysis- **Preprocessing**: Median imputation, standard scaling, one-hot encoding
-
-│   │   └── components/        # Reusable UI components- **Performance**: 100% accuracy on synthetic test data
-
-│   └── public/
-
-├── backend/            # Python FastAPI
-
-│   ├── api.py                 # Main API server### Project Structure
-
-│   ├── requirements.txt       # Python dependencies```
-
-│   └── *.pkl                  # Pre-trained ML modelsHealthcare/
-
-└── Tests/              # Sample medical files├── backend/                # Backend (FastAPI, models, configs)
-
-```│   ├── api.py              # FastAPI backend
-
-│   ├── train_model.py      # Training pipeline
-
-### 🔧 Technology Stack│   ├── diagnogenie_model.pkl
-
-│   ├── preprocessor.pkl
-
-**Frontend:**│   ├── feature_config.json
-
-- React 18 + Vite (Fast development and building)│   ├── diagno_genie_demo_10000.csv
-
-- Tailwind CSS (Utility-first styling)│   └── requirements.txt    # Python dependencies
-
-- OGL (WebGL animations)├── frontend/               # React frontend
-
-- Medical design system components│   ├── src/Home.jsx        # Home screen
-
-│   ├── src/Chatbot.jsx     # Chatbot page
-
-**Backend:**│   ├── src/ImageUpload.jsx # Image upload page
-
-- FastAPI (High-performance Python API)│   ├── src/App.jsx         # Legacy tabular diagnosis
-
-- PyTorch + torchxrayvision (Medical imaging AI)│   ├── src/main.jsx        # Routing
-
-- scikit-learn (Symptom prediction models)│   ├── package.json        # Dependencies
-
-- PIL + OpenCV (Image processing)│   └── tailwind.config.js  # Styling config
-
-├── Tests/                  # Test images (covid.jpeg, etc.)
-
-**AI Models:**└── README.md               # This file
-
-- CheXNet DenseNet-121 (X-ray pathology detection)```
-
-- Custom MRI brain analysis (Rule-based + ML)
-
-- Tabular ML models (Symptom → diagnosis prediction)
-
-### Notes
-
-## 📖 API Documentation- **Ollama**: For best chatbot experience, install Ollama and run `ollama pull llama3` or `ollama pull medllama`. Set `OLLAMA_MODEL=medllama` environment variable if using a medical model.
-
-- All diagnosis and suggestions are for educational support only; not a substitute for professional medical judgment.
-
-### Medical Imaging- Image upload returns at least 4 visual diagrams (original, Grad-CAM, overlays, saliency/edges).
-
-```bash- UI is fully responsive and modern.
-
-POST /image-diagnosis- CORS is enabled for local development.
-
+### Medical Imaging
+```bash
+POST /image-diagnosis
 Content-Type: multipart/form-data
 
 Parameters:
@@ -261,14 +171,38 @@ Response: Parsed values, interpretations, recommendations
 ### Example Usage
 ```bash
 # X-ray analysis
-curl -X POST http://localhost:8000/image-diagnosis \
+curl -X POST http://localhost:8001/image-diagnosis \
   -F "file=@Tests/xray1.jpeg" \
   -F "image_type=xray"
 
 # Medical consultation
-curl -X POST http://localhost:8000/chat \
+curl -X POST http://localhost:8001/chat \
   -H "Content-Type: application/json" \
   -d '{"messages": [{"role": "user", "content": "I have fever and cough"}], "language": "en"}'
+```
+
+## 🛠️ Architecture
+
+```
+Healthcare/
+├── backend/                # Backend (FastAPI, models, configs)
+│   ├── api.py              # FastAPI backend
+│   ├── train_model.py      # Training pipeline
+│   ├── diagnogenie_model.pkl
+│   ├── preprocessor.pkl
+│   ├── feature_config.json
+│   ├── diagno_genie_demo_10000.csv
+│   └── requirements.txt    # Python dependencies
+├── frontend/               # React frontend
+│   ├── src/Home.jsx        # Home screen
+│   ├── src/Chatbot.jsx     # Chatbot page
+│   ├── src/ImageUpload.jsx # Image upload page
+│   ├── src/App.jsx         # Main application
+│   ├── src/main.jsx        # Entry point
+│   ├── package.json        # Dependencies
+│   └── tailwind.config.js  # Styling config
+├── Tests/                  # Test images (covid.jpeg, etc.)
+└── README.md               # This file
 ```
 
 ## 🎯 Model Performance
@@ -347,7 +281,7 @@ curl -X POST http://localhost:8000/chat \
 ## 📞 Support & Community
 
 ### Getting Help
-- **Documentation**: Comprehensive guides in this README
+- **Documentation**: Comprehensive guides in this README and [SETUP_GUIDE.md](SETUP_GUIDE.md)
 - **Issues**: Create GitHub issues for bugs or feature requests
 - **Medical Questions**: Include anonymized medical context for better support
 

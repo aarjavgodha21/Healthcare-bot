@@ -1,5 +1,5 @@
-# DiagnoGenie - Healthcare AI Platform
-# Python Backend Dependencies
+# DiagnoGenie Healthcare AI Platform
+# Complete Python Dependencies for Backend
 
 # Web Framework & API
 fastapi==0.111.0
@@ -31,5 +31,8 @@ PyPDF2==3.0.1
 # HTTP Requests & Utilities
 requests==2.32.3
 
-# Optional: For enhanced AI chat
-# ollama (install separately)
+# Note: Frontend dependencies are in frontend/package.json
+# Install with: cd frontend && npm install
+
+# Optional Enhancement: Ollama for improved AI chat
+# Install separately from: https://ollama.com
